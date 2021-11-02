@@ -1,0 +1,35 @@
+[
+	{
+		"command": "echo some array",
+		"output": [
+			{
+				"key": "A",
+				"value": "v1"
+			},
+			{
+				"key": "B",
+				"value": "v2"
+			},
+			{
+				"key": "C",
+				"value": "v3"
+			},
+			{
+				"key": "D",
+				"value": "v4"
+			},
+			{
+				"key": "E",
+				"value": "v5"
+			}
+		]
+	},
+	{
+		"command": "help",
+		"output": "read the manual!"
+	},
+	{
+		"command": "cp a b",
+		"output": "copy not supported"
+	}
+]
