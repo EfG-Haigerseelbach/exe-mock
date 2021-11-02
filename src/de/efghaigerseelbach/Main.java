@@ -1,32 +1,40 @@
 package de.efghaigerseelbach;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * 
+ * @author Johannes Gilbert
+ *
+ */
 public class Main {
 
+	/**
+	 * Read the content of 'behavior.json'
+	 * @return content of 'behavior.json' as string
+	 * @throws IOException if an I/O error occurs reading from the file or a malformed orunmappable byte sequence is read (see also {@link Files.readAllLines})
+	 */
 	public String getBehaviorStr() throws IOException {
-		if(!Files.exists(Paths.get("behavior.json"), LinkOption.NOFOLLOW_LINKS)) {
+		Path behaviorJson = Paths.get("behavior.json");
+		if(!Files.exists(behaviorJson, LinkOption.NOFOLLOW_LINKS)) {
 			System.err.println("File 'behavior.json' not found! This file must be located in the same directory.");
 			return "";
 		}
-		BufferedReader br = new BufferedReader(new FileReader("behavior.json"));
-		String line = null;
-		StringBuffer content = new StringBuffer();
-		while ((line = br.readLine()) != null) {
-			content.append(line);
-		}
-		br.close();
-		return content.toString();
+		return String.join("\n", Files.readAllLines(behaviorJson));
 	}
 
+	/**
+	 * Read 'behavior.json' as JSON-array
+	 * @return a JSON-array containing the desired behavior description of the sudo mock or {@code null} in case 'behavior.json' is empty
+	 * @throws IOException if an I/O error occurs reading from the file or a malformed orunmappable byte sequence is read (see also {@link Files.readAllLines})
+	 */
 	public JSONArray getBehavior() throws IOException {
 		String behaviorStr = getBehaviorStr();
 		if(behaviorStr.isEmpty()) {
@@ -35,6 +43,11 @@ public class Main {
 		return new JSONArray(behaviorStr);
 	}
 
+	/**
+	 * Check if the given {@code command} is defined
+	 * @param command the command to check
+	 * @return {@code true} is case a behavior is defined for the given command, else {@code false}
+	 */
 	public boolean isCommandDefined(String command) {
 		for (int i = 0; i < behaviorArray.length(); i++) {
 			JSONObject behavior = behaviorArray.getJSONObject(i);
@@ -45,14 +58,11 @@ public class Main {
 		return false;
 	}
 
-	public String getArgsAsString(String[] args) {
-		StringBuffer result = new StringBuffer();
-		for (String arg : args) {
-			result.append(" " + arg);
-		}
-		return result.toString().trim();
-	}
-
+	/**
+	 * Check if an output is defined for the given {@code command}
+	 * @param command the command to check
+	 * @return {code true} is case an output is defined (property "output"), else {@code false}
+	 */
 	public boolean hasOutput(String command) {
 		if (!isCommandDefined(command)) {
 			throw new RuntimeException("No such command! Did you call isCommandDefined() before?!? Change you coding!");
@@ -60,14 +70,18 @@ public class Main {
 		for (int i = 0; i < behaviorArray.length(); i++) {
 			JSONObject behavior = behaviorArray.getJSONObject(i);
 			if (behavior.getString("command").equals(command)) {
-
 				return behavior.has("output");
-
 			}
 		}
 		return false; // should never be reached
 	}
 
+	/**
+	 * Determine the output for the given {@code command}. Make sure to call {@link isCommandDefined} a-priori. If the given
+	 * {@code command} is not defined an exception is raised.
+	 * @param command the command to get the output for
+	 * @return the output as string
+	 */
 	public String getOutput(String command) {
 		if (!isCommandDefined(command)) {
 			throw new RuntimeException("No such command! Did you call isCommandDefined() before?!? Change you coding!");
@@ -86,16 +100,23 @@ public class Main {
 		}
 		return ""; // should never be reached
 	}
-
+	
+	/**
+	 * Content of 'behavior.json' as JSON-array.
+	 */
 	public JSONArray behaviorArray;
 
+	/**
+	 * Putting all ends together...
+	 * @param args the program arguments
+	 */
 	public void run(String[] args) {
 		try {
 			behaviorArray = getBehavior();
 			if(behaviorArray == null) {
 				return;
 			}
-			String command = getArgsAsString(args);
+			String command = String.join(" ", args).trim();
 			if (!isCommandDefined(command)) {
 				System.err.println("No definition found for command '" + command + "' in behavior.json!");
 				return;
@@ -112,5 +133,4 @@ public class Main {
 	public static void main(String[] args) {
 		new Main().run(args);
 	}
-
 }
