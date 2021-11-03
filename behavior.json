@@ -32,4 +32,5 @@
 		"command": "cp a b",
 		"output": "copy not supported"
 	}
+	
 ]

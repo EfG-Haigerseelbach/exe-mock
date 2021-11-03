@@ -26,3 +26,7 @@ Make sure a JSON-file named `behavior.json` is stored at the same directory as `
 ```
 
 * File `behavior.json` does not contain any definition for a certain command (e.g. `ABC`). In the case you will get error message `For command 'ABC' property 'output' is NOT defined! Correct behavior.json first!`. Edit file `behavior.json` and add a property `output` on the JSON-object of the respective command. The property name must be `output`(as already mentioned). The property's value can be any valid JSON (e.g. string, object, ...).
+
+## Restrictions
+
+* The command **must not** contain the following characters: `<` `>`
