@@ -18,12 +18,15 @@ public class Main {
 
 	/**
 	 * Read the content of 'behavior.json'
+	 * 
 	 * @return content of 'behavior.json' as string
-	 * @throws IOException if an I/O error occurs reading from the file or a malformed orunmappable byte sequence is read (see also {@link Files.readAllLines})
+	 * @throws IOException if an I/O error occurs reading from the file or a
+	 *                     malformed orunmappable byte sequence is read (see also
+	 *                     {@link Files.readAllLines})
 	 */
 	public String getBehaviorStr() throws IOException {
 		Path behaviorJson = Paths.get("behavior.json");
-		if(!Files.exists(behaviorJson, LinkOption.NOFOLLOW_LINKS)) {
+		if (!Files.exists(behaviorJson, LinkOption.NOFOLLOW_LINKS)) {
 			System.err.println("File 'behavior.json' not found! This file must be located in the same directory.");
 			return "";
 		}
@@ -32,21 +35,37 @@ public class Main {
 
 	/**
 	 * Read 'behavior.json' as JSON-array
-	 * @return a JSON-array containing the desired behavior description of the sudo mock or {@code null} in case 'behavior.json' is empty
-	 * @throws IOException if an I/O error occurs reading from the file or a malformed orunmappable byte sequence is read (see also {@link Files.readAllLines})
+	 * 
+	 * @return a JSON-array containing the desired behavior description of the sudo
+	 *         mock or {@code null} in case 'behavior.json' is empty
+	 * @throws IOException if an I/O error occurs reading from the file or a
+	 *                     malformed orunmappable byte sequence is read (see also
+	 *                     {@link Files.readAllLines})
 	 */
 	public JSONArray getBehavior() throws IOException {
 		String behaviorStr = getBehaviorStr();
-		if(behaviorStr.isEmpty()) {
+		if (behaviorStr.isEmpty()) {
 			return null;
 		}
-		return new JSONArray(behaviorStr);
+		JSONArray arrayTmp = new JSONArray(behaviorStr);
+		for (int i = 0; i < arrayTmp.length(); i++) {
+			JSONObject objectTmp = arrayTmp.getJSONObject(i);
+			for(String name : JSONObject.getNames(objectTmp)) {
+				if(name.equals(sudoTestCase)) {
+					return objectTmp.getJSONArray(name);
+				}
+			}
+		}
+		System.err.println("behavior.json does not contain any definition for property '"+sudoTestCase+"'");
+		return null;
 	}
 
 	/**
 	 * Check if the given {@code command} is defined
+	 * 
 	 * @param command the command to check
-	 * @return {@code true} is case a behavior is defined for the given command, else {@code false}
+	 * @return {@code true} is case a behavior is defined for the given command,
+	 *         else {@code false}
 	 */
 	public boolean isCommandDefined(String command) {
 		for (int i = 0; i < behaviorArray.length(); i++) {
@@ -60,8 +79,10 @@ public class Main {
 
 	/**
 	 * Check if an output is defined for the given {@code command}
+	 * 
 	 * @param command the command to check
-	 * @return {code true} is case an output is defined (property "output"), else {@code false}
+	 * @return {code true} is case an output is defined (property "output"), else
+	 *         {@code false}
 	 */
 	public boolean hasOutput(String command) {
 		if (!isCommandDefined(command)) {
@@ -77,8 +98,10 @@ public class Main {
 	}
 
 	/**
-	 * Determine the output for the given {@code command}. Make sure to call {@link isCommandDefined} a-priori. If the given
-	 * {@code command} is not defined an exception is raised.
+	 * Determine the output for the given {@code command}. Make sure to call
+	 * {@link isCommandDefined} a-priori. If the given {@code command} is not
+	 * defined an exception is raised.
+	 * 
 	 * @param command the command to get the output for
 	 * @return the output as string
 	 */
@@ -95,25 +118,33 @@ public class Main {
 		for (int i = 0; i < behaviorArray.length(); i++) {
 			JSONObject behavior = behaviorArray.getJSONObject(i);
 			if (behavior.getString("command").equals(command)) {
-				return behavior.get("output").toString(); 
+				return behavior.get("output").toString();
 			}
 		}
 		return ""; // should never be reached
 	}
-	
+
 	/**
 	 * Content of 'behavior.json' as JSON-array.
 	 */
 	public JSONArray behaviorArray;
 
+	public String sudoTestCase = "default";
+
 	/**
 	 * Putting all ends together...
+	 * 
 	 * @param args the program arguments
 	 */
 	public void run(String[] args) {
+		String sudoTestCaseTmp = System.getenv("SUDO_TEST_CASE");
+		if (sudoTestCaseTmp != null) {
+			sudoTestCase = sudoTestCaseTmp.trim();
+		}
+
 		try {
 			behaviorArray = getBehavior();
-			if(behaviorArray == null) {
+			if (behaviorArray == null) {
 				return;
 			}
 			String command = String.join(" ", args).trim();

@@ -10,9 +10,76 @@ Using a maven build-run configuration a jar file can be built. Use goal `package
 
 The actual source code is organized as maven project and will build a jar file. To wrap it into an executable [lauch4j](http://launch4j.sourceforge.net/) is used. The launch4j configuration is stored in `launch4j.xml`.
 
-## Usage
+## Usage & Configuration
 
-Make sure a JSON-file named `behavior.json` is stored at the same directory as `sudo.exe`.
+Make sure a JSON-file named `behavior.json` is stored at the same directory as `sudo.exe`. This file needs to have the following structure:
+
+```JSON
+[
+	{
+		"default": [
+			{
+				"command": "help",
+				"output": "read the manual!"
+			},
+			...
+		]
+	}, 
+	{
+		"<name>": [
+			{
+				"command": "help",
+				"output": "read the manual again!"
+			},
+			...
+		]
+	},
+	...
+]
+```
+
+The `default` entry along with its subsequent definitions is used in case the environment variable `SUDO_TEST_CASE` is not set. In case environment variable `SUDO_TEST_CASE` is set the corresponding branch in `behavior.json` is read.
+
+Example: You would like the sudo-mock to output some success message for command `cp a b` by default. In case the environment variable `SUDO_TEST_CASE` is set to `errorCase1` there should be an error message. Hence, `behavior.json` is defined as follows:
+
+```JSON
+[
+	{
+		"default": [
+			{
+				"command": "cp a b",
+				"output": "copy successful"
+			}
+		]
+	}, 
+	{
+		"errorCase1": [
+			{
+				"command": "cp a b",
+				"output": "copying failed: no such file 'a'"
+			}
+		]
+	}
+]
+```
+
+The sudo-mock will behave as follows:
+
+```
+> sudo cp a b
+copy successful
+
+> set SUDO_TEST_CASE=errorCase1 && sudo cp a b
+copying failed: no such file 'a'
+
+> sudo cp a b
+copying failed: no such file 'a'
+
+> set SUDO_TEST_CASE=default
+
+> sudo cp a b
+copy successful
+```
 
 ## Issues
 
