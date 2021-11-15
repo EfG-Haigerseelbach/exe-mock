@@ -149,7 +149,7 @@ public class Main {
 			}
 			String command = String.join(" ", args).trim();
 			if (!isCommandDefined(command)) {
-				System.err.println("No definition found for command '" + command + "' in behavior.json!");
+				System.err.println("No definition found for command '" + command + "' in behavior.json (SUDO_TEST_CASE="+sudoTestCase+")!");
 				return;
 			}
 			String output = getOutput(command);
