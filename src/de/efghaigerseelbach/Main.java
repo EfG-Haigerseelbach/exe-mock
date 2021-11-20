@@ -36,10 +36,10 @@ public class Main {
 	/**
 	 * Read 'behavior.json' as JSON-array
 	 * 
-	 * @return a JSON-array containing the desired behavior description of the sudo
+	 * @return a JSON-array containing the desired behavior description of the
 	 *         mock or {@code null} in case 'behavior.json' is empty
 	 * @throws IOException if an I/O error occurs reading from the file or a
-	 *                     malformed orunmappable byte sequence is read (see also
+	 *                     malformed or unmappable byte sequence is read (see also
 	 *                     {@link Files.readAllLines})
 	 */
 	public JSONArray getBehavior() throws IOException {
@@ -51,12 +51,12 @@ public class Main {
 		for (int i = 0; i < arrayTmp.length(); i++) {
 			JSONObject objectTmp = arrayTmp.getJSONObject(i);
 			for(String name : JSONObject.getNames(objectTmp)) {
-				if(name.equals(sudoTestCase)) {
+				if(name.equals(testCase)) {
 					return objectTmp.getJSONArray(name);
 				}
 			}
 		}
-		System.err.println("behavior.json does not contain any definition for property '"+sudoTestCase+"'");
+		System.err.println("behavior.json does not contain any definition for property '"+testCase+"'");
 		return null;
 	}
 
@@ -129,7 +129,7 @@ public class Main {
 	 */
 	public JSONArray behaviorArray;
 
-	public String sudoTestCase = "default";
+	public String testCase = "default";
 
 	/**
 	 * Putting all ends together...
@@ -137,9 +137,9 @@ public class Main {
 	 * @param args the program arguments
 	 */
 	public void run(String[] args) {
-		String sudoTestCaseTmp = System.getenv("SUDO_TEST_CASE");
-		if (sudoTestCaseTmp != null) {
-			sudoTestCase = sudoTestCaseTmp.trim();
+		String testCaseTmp = System.getenv("TEST_CASE");
+		if (testCaseTmp != null) {
+			testCase = testCaseTmp.trim();
 		}
 
 		try {
@@ -149,7 +149,7 @@ public class Main {
 			}
 			String command = String.join(" ", args).trim();
 			if (!isCommandDefined(command)) {
-				System.err.println("No definition found for command '" + command + "' in behavior.json (SUDO_TEST_CASE="+sudoTestCase+")!");
+				System.err.println("No definition found for command '" + command + "' in behavior.json (TEST_CASE="+testCase+")!");
 				return;
 			}
 			String output = getOutput(command);
